@@ -1,0 +1,40 @@
+name: Exportação diária (Base44)
+
+on:
+  schedule:
+    # Ajuste o horário desejado. GitHub usa UTC.
+    # Exemplo: 12:00 UTC = 09:00 em Brasília (UTC-3)
+    - cron: "0 0 * * *"
+  workflow_dispatch: {}  # permite rodar manualmente
+
+jobs:
+  exportar-planilhas:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Executar script
+        env:
+          BASE44_API_KEY: ${{ secrets.BASE44_API_KEY }}
+        run: |
+          python data.py
+
+      - name: Upload artifacts (planilhas)
+        uses: actions/upload-artifact@v4
+        with:
+          name: planilhas-base44
+          path: outputs/*.xlsx
+          if-no-files-found: error
+          retention-days: 14
